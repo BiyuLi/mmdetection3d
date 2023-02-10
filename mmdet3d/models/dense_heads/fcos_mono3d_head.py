@@ -1,6 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from logging import warning
-
+import pdb
 import numpy as np
 import torch
 from mmcv.cnn import Scale, normal_init
@@ -303,16 +303,23 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
+
+        """
+        len(cls_scores) = 5, cls_scores[0].size() = [8, 10, 58, 100] (batchsize=8, class=10, stride=8=>featmapsize=(58, 100))
+        bbox_preds[0].size() = []
+        """
+
         assert len(cls_scores) == len(bbox_preds) == len(centernesses) == len(
             attr_preds)
         featmap_sizes = [featmap.size()[-2:] for featmap in cls_scores]
         all_level_points = self.get_points(featmap_sizes, bbox_preds[0].dtype,
                                            bbox_preds[0].device)
+        #pdb.set_trace()
         labels_3d, bbox_targets_3d, centerness_targets, attr_targets = \
             self.get_targets(
                 all_level_points, gt_bboxes, gt_labels, gt_bboxes_3d,
                 gt_labels_3d, centers2d, depths, attr_labels)
-
+        #pdb.set_trace()
         num_imgs = cls_scores[0].size(0)
         # flatten cls_scores, bbox_preds, dir_cls_preds and centerness
         flatten_cls_scores = [
@@ -771,6 +778,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
                 concat_lvl_bbox_targets (list[Tensor]): BBox targets of each
                     level.
         """
+
         assert len(points) == len(self.regress_ranges)
         num_levels = len(points)
         # expand regress ranges to align with points
@@ -855,6 +863,7 @@ class FCOSMono3DHead(AnchorFreeMono3DHead):
         """Compute regression and classification targets for a single image."""
         num_points = points.size(0)
         num_gts = gt_labels.size(0)
+
         if not isinstance(gt_bboxes_3d, torch.Tensor):
             gt_bboxes_3d = gt_bboxes_3d.tensor.to(gt_bboxes.device)
         if num_gts == 0:

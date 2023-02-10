@@ -2,7 +2,7 @@
 from .compose import Compose
 from .dbsampler import DataBaseSampler
 from .formating import Collect3D, DefaultFormatBundle, DefaultFormatBundle3D
-from .loading import (LoadAnnotations3D, LoadImageFromFileMono3D,
+from .loading import (LoadAnnotations3D,LoadAnnotations3dMultiBranchHead, LoadImageFromFileMono3D,
                       LoadMultiViewImageFromFiles, LoadPointsFromDict,
                       LoadPointsFromFile, LoadPointsFromMultiSweeps,
                       NormalizePointsColor, PointSegClassMapping)
@@ -23,7 +23,7 @@ __all__ = [
     'PointShuffle', 'ObjectRangeFilter', 'PointsRangeFilter', 'Collect3D',
     'Compose', 'LoadMultiViewImageFromFiles', 'LoadPointsFromFile',
     'DefaultFormatBundle', 'DefaultFormatBundle3D', 'DataBaseSampler',
-    'NormalizePointsColor', 'LoadAnnotations3D', 'IndoorPointSample',
+    'NormalizePointsColor', 'LoadAnnotations3D','LoadAnnotations3dMultiBranchHead', 'IndoorPointSample',
     'PointSample', 'PointSegClassMapping', 'MultiScaleFlipAug3D',
     'LoadPointsFromMultiSweeps', 'BackgroundPointsFilter',
     'VoxelBasedPointSampler', 'GlobalAlignment', 'IndoorPatchPointSample',

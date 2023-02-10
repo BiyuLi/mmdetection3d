@@ -1,20 +1,16 @@
 model = dict(
     type='FCOSMono3D',
     backbone=dict(
-        type='ResNet',
-        depth=101,
-        num_stages=4,
-        out_indices=(0, 1, 2, 3),
-        frozen_stages=1,
+        type='MobileNetV2',
+        out_indices=(1, 2, 4, 6),
         norm_cfg=dict(type='BN', requires_grad=False),
+        act_cfg=dict(type='LeakyReLU', negative_slope=0.1),
         norm_eval=True,
-        style='caffe',
         init_cfg=dict(
-            type='Pretrained',
-            checkpoint='open-mmlab://detectron2/resnet101_caffe')),
+            type='Pretrained', checkpoint='open-mmlab://mmdet/mobilenet_v2')),
     neck=dict(
         type='FPN',
-        in_channels=[64, 128, 192, 256],
+        in_channels=[24, 32, 96, 320],
         out_channels=64,
         start_level=1,
         add_extra_convs='on_output',
@@ -76,3 +72,4 @@ model = dict(
         score_thr=0.20,
         min_bbox_size=0,
         max_per_img=200))
+find_unused_parameters=True #mobile stage 6 可能含有未使用的权重参数，分布式训练会对模型进行再封装，此时会检测未使用的参数，如有则报错

@@ -1,8 +1,8 @@
-dataset_type = 'NuScenesMonoDataset'
+dataset_type = 'NuScenesMonoDatasetHPP'
 data_root = 'data/nuscenes/'
 class_names = [
     'car', 'truck', 'trailer', 'bus', 'construction_vehicle', 'bicycle',
-    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier'
+    'motorcycle', 'pedestrian', 'traffic_cone', 'barrier','vehicle_head', 'vehicle_rear'
 ]
 # Input modality for nuScenes dataset, this is consistent with the submission
 # format which requires the information in input_modality.
@@ -17,41 +17,40 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='LoadImageFromFileMono3D'),
     dict(
-        type='LoadAnnotations3D',
-        with_bbox=True,
-        with_label=True,
-        with_attr_label=True,
-        with_bbox_3d=True,
-        with_label_3d=True,
-        with_bbox_depth=True),
-    dict(type='Resize', img_scale=(1600, 900), keep_ratio=True),
-    dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
-    dict(type='Normalize', **img_norm_cfg),
-    dict(type='Pad', size_divisor=32),
+        type='LoadAnnotations3dMultiBranchHead',
+        with_vehicle=True,
+        with_person=True,
+        with_rider=True,
+        with_rear = True,
+        with_ignore=False # ignore框是否传到loss
+        ),
+    # dict(type='Resize', img_scale=(1600, 900), keep_ratio=True),
+    # dict(type='RandomFlip3D', flip_ratio_bev_horizontal=0.5),
+    # dict(type='Normalize', **img_norm_cfg),
+    # dict(type='Pad', size_divisor=32),
     dict(type='DefaultFormatBundle3D', class_names=class_names),
     dict(
         type='Collect3D',
         keys=[
-            'img', 'gt_bboxes', 'gt_labels', 'attr_labels', 'gt_bboxes_3d',
-            'gt_labels_3d', 'centers2d', 'depths'
+            'img', 'vehicle_fields', 'person_fields', 'rider_fields', 'rear_fields', 'ignore_fields'
         ]),
 ]
 test_pipeline = [
     dict(type='LoadImageFromFileMono3D'),
-    dict(
-        type='MultiScaleFlipAug',
-        scale_factor=1.0,
-        flip=False,
-        transforms=[
-            dict(type='RandomFlip3D'),
-            dict(type='Normalize', **img_norm_cfg),
-            dict(type='Pad', size_divisor=32),
-            dict(
-                type='DefaultFormatBundle3D',
-                class_names=class_names,
-                with_label=False),
-            dict(type='Collect3D', keys=['img']),
-        ])
+    # dict(
+    #     type='MultiScaleFlipAug',
+    #     scale_factor=1.0,
+    #     flip=False,
+    #     transforms=[
+    #         dict(type='RandomFlip3D'),
+    #         dict(type='Normalize', **img_norm_cfg),
+    #         dict(type='Pad', size_divisor=32),
+    #         dict(
+    #             type='DefaultFormatBundle3D',
+    #             class_names=class_names,
+    #             with_label=False),
+    #         dict(type='Collect3D', keys=['img']),
+    #     ])
 ]
 # construct a pipeline for data and gt loading in show function
 # please keep its loading function consistent with test_pipeline (e.g. client)
@@ -65,7 +64,7 @@ eval_pipeline = [
 ]
 
 data = dict(
-    samples_per_gpu=8,
+    samples_per_gpu=2,
     workers_per_gpu=2,
     train=dict(
         type=dataset_type,

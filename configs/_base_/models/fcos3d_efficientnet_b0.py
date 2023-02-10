@@ -1,20 +1,20 @@
+checkpoint = 'https://download.openmmlab.com/mmclassification/v0/efficientnet/efficientnet-b0_3rdparty_8xb32_in1k_20220119-a7e2a0b1.pth'
 model = dict(
     type='FCOSMono3D',
     backbone=dict(
-        type='ResNet',
-        depth=101,
-        num_stages=4,
-        out_indices=(0, 1, 2, 3),
-        frozen_stages=1,
-        norm_cfg=dict(type='BN', requires_grad=False),
-        norm_eval=True,
-        style='caffe',
+        type='EfficientNet',
+        arch='b0',
+        drop_path_rate=0.2,
+        out_indices=(2, 3, 4, 5),
+        frozen_stages=0,
+        norm_cfg=dict(
+            type='SyncBN', requires_grad=True, eps=1e-3, momentum=0.01),
+        norm_eval=False,
         init_cfg=dict(
-            type='Pretrained',
-            checkpoint='open-mmlab://detectron2/resnet101_caffe')),
+            type='Pretrained', prefix='backbone', checkpoint=checkpoint)),
     neck=dict(
         type='FPN',
-        in_channels=[64, 128, 192, 256],
+        in_channels=[24, 40, 112, 320],
         out_channels=64,
         start_level=1,
         add_extra_convs='on_output',
@@ -72,7 +72,7 @@ model = dict(
         use_rotate_nms=True,
         nms_across_levels=False,
         nms_pre=1000,
-        nms_thr=0.2,
-        score_thr=0.20,
+        nms_thr=0.8,
+        score_thr=0.05,
         min_bbox_size=0,
         max_per_img=200))

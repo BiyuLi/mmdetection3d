@@ -115,7 +115,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-
+    # args.config = "/home/gpu/works/sunxusheng/mmdetection3d/configs/fcos3d/fcos3d_r101_caffe_fpn_gn-head_dcn_2x8_1x_nus-mono3d_cspdarknet.py"
     cfg = Config.fromfile(args.config)
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)

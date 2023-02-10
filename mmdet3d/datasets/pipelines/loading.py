@@ -691,3 +691,184 @@ class LoadAnnotations3D(LoadAnnotations):
         repr_str += f'{indent_str}with_bbox_depth={self.with_bbox_depth}, '
         repr_str += f'{indent_str}poly2mask={self.poly2mask})'
         return repr_str
+
+@PIPELINES.register_module()
+class LoadAnnotations3dMultiBranchHead():
+    """Load Annotations3D.
+
+    Load instance mask and semantic mask of points and
+    encapsulate the items into related fields.
+
+    Args:
+        with_bbox_3d (bool, optional): Whether to load 3D boxes.
+            Defaults to True.
+        with_label_3d (bool, optional): Whether to load 3D labels.
+            Defaults to True.
+        with_attr_label (bool, optional): Whether to load attribute label.
+            Defaults to False.
+        with_mask_3d (bool, optional): Whether to load 3D instance masks.
+            for points. Defaults to False.
+        with_seg_3d (bool, optional): Whether to load 3D semantic masks.
+            for points. Defaults to False.
+        with_bbox (bool, optional): Whether to load 2D boxes.
+            Defaults to False.
+        with_label (bool, optional): Whether to load 2D labels.
+            Defaults to False.
+        with_mask (bool, optional): Whether to load 2D instance masks.
+            Defaults to False.
+        with_seg (bool, optional): Whether to load 2D semantic masks.
+            Defaults to False.
+        with_bbox_depth (bool, optional): Whether to load 2.5D boxes.
+            Defaults to False.
+        poly2mask (bool, optional): Whether to convert polygon annotations
+            to bitmasks. Defaults to True.
+        seg_3d_dtype (dtype, optional): Dtype of 3D semantic masks.
+            Defaults to int64
+        file_client_args (dict): Config dict of file clients, refer to
+            https://github.com/open-mmlab/mmcv/blob/master/mmcv/fileio/file_client.py
+            for more details.
+    """
+
+    def __init__(self,
+                 with_vehicle=True,
+                 with_person=True,
+                 with_rider=True,
+                 with_rear=True,
+                 with_ignore=False,
+                 denorm_bbox = False,
+                 file_client_args=dict(backend='disk')):
+        self.with_vehicle = with_vehicle
+        self.with_person = with_person
+        self.with_rider = with_rider
+        self.with_rear = with_rear
+        self.with_ignore = with_ignore
+        self.denorm_bbox = denorm_bbox
+        self.file_client_args = file_client_args.copy()
+
+    # def _load_bboxes(self, results):
+    #     """Private function to load bounding box annotations.
+
+    #     Args:
+    #         results (dict): Result dict from :obj:`mmdet.CustomDataset`.
+
+    #     Returns:
+    #         dict: The dict contains loaded bounding box annotations.
+    #     """
+
+    #     ann_info = results['ann_info']
+    #     results['gt_bboxes'] = ann_info['bboxes'].copy()
+
+    #     if self.denorm_bbox:
+    #         bbox_num = results['gt_bboxes'].shape[0]
+    #         if bbox_num != 0:
+    #             h, w = results['img_shape'][:2]
+    #             results['gt_bboxes'][:, 0::2] *= w
+    #             results['gt_bboxes'][:, 1::2] *= h
+
+    #     gt_bboxes_ignore = ann_info.get('bboxes_ignore', None)
+    #     if gt_bboxes_ignore is not None:
+    #         results['gt_bboxes_ignore'] = gt_bboxes_ignore.copy()
+    #         results['bbox_fields'].append('gt_bboxes_ignore')
+    #     results['bbox_fields'].append('gt_bboxes')
+
+    #     gt_is_group_ofs = ann_info.get('gt_is_group_ofs', None)
+    #     if gt_is_group_ofs is not None:
+    #         results['gt_is_group_ofs'] = gt_is_group_ofs.copy()
+
+    #     return results
+
+    def _load_vehicle_gt(self, results):
+        vehicle_gt = results['ann_info']['vehicle_gt'].copy()
+        # 如果h,w需要归一化(默认不需要)
+        if self.denorm_bbox:
+            bbox_num = vehicle_gt[0].shape[0] # vehicle_gt第一项为bboxes
+            if bbox_num != 0:
+                h, w = results['img_shape'][:2]
+                vehicle_gt[0][:, 0::2] *= w
+                vehicle_gt[0][:, 1::2] *= h
+
+        results['vehicle_fields'].append(vehicle_gt)
+        return results
+
+    def _load_person_gt(self, results):
+        person_gt = results['ann_info']['person_gt'].copy()
+        if self.denorm_bbox:
+            bbox_num = person_gt[0].shape[0]
+            if bbox_num != 0:
+                h, w = results['img_shape'][:2]
+                person_gt[0][:, 0::2] *= w
+                person_gt[0][:, 1::2] *= h
+
+        results['person_fields'].append(person_gt)
+        return results
+
+    def _load_rider_gt(self, results):
+        rider_gt = results['ann_info']['rider_gt'].copy()
+        if self.denorm_bbox:
+            bbox_num = rider_gt[0].shape[0]
+            if bbox_num != 0:
+                h, w = results['img_shape'][:2]
+                rider_gt[0][:, 0::2] *= w
+                rider_gt[0][:, 1::2] *= h
+
+        results['rider_fields'].append(rider_gt)
+        return results
+
+    def _load_rear_gt(self, results):
+        rear_gt = results['ann_info']['rear_gt'].copy()
+        if self.denorm_bbox:
+            bbox_num = rear_gt[0].shape[0]
+            if bbox_num != 0:
+                h, w = results['img_shape'][:2]
+                rear_gt[0][:, 0::2] *= w
+                rear_gt[0][:, 1::2] *= h
+
+        results['rear_fields'].append(rear_gt)
+        return results
+
+    def _load_ignore(self, results):
+        ignore_gt = results['ann_info']['gt_bboxes_ignore'].copy()
+        results['ignore_fields'].append(ignore_gt)
+        return results
+
+    def __call__(self, results):
+        """Call function to load multiple types annotations.
+
+        Args:
+            results (dict): Result dict from :obj:`mmdet3d.CustomDataset`.
+
+        Returns:
+            dict: The dict containing loaded 3D bounding box, label, mask and
+                semantic segmentation annotations.
+        """
+        if self.with_vehicle:
+            results = self._load_vehicle_gt(results)
+            if results is None:
+                return None
+        if self.with_person:
+            results = self._load_person_gt(results)
+        if self.with_rider:
+            results = self._load_rider_gt(results)
+            if results is None:
+                return None
+        if self.with_rear:
+            results = self._load_rear_gt(results)
+            if results is None:
+                return None
+        if self.with_rear:
+            results = self._load_ignore(results)
+            if results is None:
+                return None
+        return results
+
+    def __repr__(self):
+        """str: Return a string that describes the module."""
+        indent_str = '    '
+        repr_str = self.__class__.__name__ + '(\n'
+        repr_str += f'{indent_str}with_vehicle={self.with_vehicle}, '
+        repr_str += f'{indent_str}with_person={self.with_person}, '
+        repr_str += f'{indent_str}with_rider={self.with_rider}, '
+        repr_str += f'{indent_str}with_rear={self.with_rear}, '
+        repr_str += f'{indent_str}with_ignore={self.with_ignore}, '
+        repr_str += f'file_client_args={self.file_client_args})'
+        return repr_str

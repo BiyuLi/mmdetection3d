@@ -11,7 +11,7 @@ from .nuscenes_mono_dataset import NuScenesMonoDataset
 # yapf: disable
 from .pipelines import (AffineResize, BackgroundPointsFilter, GlobalAlignment,
                         GlobalRotScaleTrans, IndoorPatchPointSample,
-                        IndoorPointSample, LoadAnnotations3D,
+                        IndoorPointSample, LoadAnnotations3D, LoadAnnotations3dMultiBranchHead,
                         LoadPointsFromDict, LoadPointsFromFile,
                         LoadPointsFromMultiSweeps, MultiViewWrapper,
                         NormalizePointsColor, ObjectNameFilter, ObjectNoise,
@@ -28,6 +28,7 @@ from .semantickitti_dataset import SemanticKITTIDataset
 from .sunrgbd_dataset import SUNRGBDDataset
 from .utils import get_loading_pipeline
 from .waymo_dataset import WaymoDataset
+from .nuscenes_mono_dataset_hpp import NuScenesMonoDatasetHPP
 
 __all__ = [
     'KittiDataset', 'KittiMonoDataset', 'build_dataloader', 'DATASETS',
@@ -36,12 +37,12 @@ __all__ = [
     'PointShuffle', 'ObjectRangeFilter', 'PointsRangeFilter',
     'LoadPointsFromFile', 'S3DISSegDataset', 'S3DISDataset',
     'NormalizePointsColor', 'IndoorPatchPointSample', 'IndoorPointSample',
-    'PointSample', 'LoadAnnotations3D', 'GlobalAlignment', 'SUNRGBDDataset',
+    'PointSample', 'LoadAnnotations3D', 'LoadAnnotations3dMultiBranchHead', 'GlobalAlignment', 'SUNRGBDDataset',
     'ScanNetDataset', 'ScanNetSegDataset', 'ScanNetInstanceSegDataset',
     'SemanticKITTIDataset', 'Custom3DDataset', 'Custom3DSegDataset',
     'LoadPointsFromMultiSweeps', 'WaymoDataset', 'BackgroundPointsFilter',
     'VoxelBasedPointSampler', 'get_loading_pipeline', 'RandomDropPointsColor',
     'RandomJitterPoints', 'ObjectNameFilter', 'AffineResize',
     'RandomShiftScale', 'LoadPointsFromDict', 'PIPELINES',
-    'RangeLimitedRandomCrop', 'RandomRotate', 'MultiViewWrapper'
+    'RangeLimitedRandomCrop', 'RandomRotate', 'MultiViewWrapper', 'NuScenesMonoDatasetHPP'
 ]

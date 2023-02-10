@@ -99,6 +99,30 @@ class FCOS3DBBoxCoder(BaseBBoxCoder):
 
         return bbox
 
+    def multihead_decode(self, offset, depth, dim, scale, stride, training):
+        scale_offset, scale_depth, scale_size = scale[0:3]
+
+        offset_clone, depth_clone, dim_clone = offset.clone(), depth.clone(), dim.clone()
+
+        offset = scale_offset(offset_clone).float()
+        depth = scale_depth(depth_clone).float()
+        dim = scale_size(dim_clone).float()
+
+        assert self.base_depths is None, "Only support this mode"
+        depth = depth.exp()
+        dim = dim.exp()
+
+        assert self.norm_on_bbox is True, 'Setting norm_on_bbox to False '\
+            'has not been thoroughly tested for FCOS3D.'
+
+        if self.norm_on_bbox:
+            if not training:
+                offset *= stride
+        
+        return offset, depth, dim
+
+
+
     @staticmethod
     def decode_yaw(bbox, centers2d, dir_cls, dir_offset, cam2img):
         """Decode yaw angle and change it from local to global.i.

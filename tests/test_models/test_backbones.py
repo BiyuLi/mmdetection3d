@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 import torch
-
+from mmdet.models.backbones import CSPDarknet
 from mmdet3d.models import build_backbone
 
 
@@ -405,3 +405,17 @@ def test_mink_resnet():
     assert y[0].tensor_stride[0] == 4
     assert y[1].F.shape == torch.Size([900, 128])
     assert y[1].tensor_stride[0] == 8
+
+
+def test_cspdarknet():
+    model = CSPDarknet(arch='P6',
+                    widen_factor=0.5,
+                    out_indices=range(0, 6),
+                    spp_kernal_sizes=(3, 5, 7))
+
+    images = torch.randn(2, 3, 64, 64)
+    feat = model(images)
+    for i in range(0, 6):
+        print(feat[i].shape)
+
+test_cspdarknet()
